@@ -67,7 +67,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--cream);font-family
 .typo-warning strong{color:var(--cream);}
 .typo-warning span{text-decoration:underline;cursor:pointer;font-weight:600;}
 
-.view-modal{text-align:center;padding-top:10px;}
+.view-modal{text-align:center;padding-top:10px;border-radius:16px;}
 .view-header{display:flex;justify-content:flex-end;margin-bottom:2px;}
 .view-score-badge{width:84px;height:84px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;font-size:30px;margin:4px auto 16px;}
 .view-score-badge.tier-1{background:var(--mustard);color:var(--bg);}
@@ -80,6 +80,14 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--cream);font-family
 .view-tag{background:var(--field);border:1px solid var(--line);border-radius:999px;padding:5px 14px;font-size:12px;color:var(--ketchup);font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
 .view-note{margin-top:22px;padding:14px 16px;background:var(--field);border-left:3px solid var(--sage);border-radius:8px;font-size:14px;color:var(--cream);font-style:italic;text-align:left;line-height:1.5;}
 .view-date{margin-top:16px;font-size:11px;color:var(--cream-dim);text-transform:uppercase;letter-spacing:.5px;}
+
+.welcome-modal{text-align:center;border-radius:16px;padding-top:22px;}
+.welcome-modal .logo-mark{width:88px;height:88px;margin-bottom:14px;}
+.welcome-title{font-family:var(--font-display);font-size:30px;letter-spacing:.5px;color:var(--ketchup);}
+.welcome-title span{color:var(--mustard);}
+.welcome-body{font-size:14px;color:var(--cream);margin-top:12px;line-height:1.5;padding:0 6px;}
+.welcome-note{font-size:12px;color:var(--cream-dim);margin-top:16px;padding:12px 14px;background:var(--field);border-left:3px solid var(--sage);border-radius:8px;text-align:left;line-height:1.5;}
+.welcome-modal .submit-btn{margin-top:22px;}
 .view-modal .submit-btn{margin-top:26px;}
 .tag{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-size:10.5px;letter-spacing:.3px;text-transform:uppercase;color:var(--ketchup);font-weight:600;}
 .score-badge{font-family:var(--font-mono);font-weight:700;font-size:16px;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -127,6 +135,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--cream);font-family
 .fab:hover{transform:translateX(-50%) scale(1.03);}
 
 .overlay{position:fixed;inset:0;background:rgba(18,8,26,0.7);display:flex;align-items:flex-end;justify-content:center;z-index:50;backdrop-filter:blur(2px);}
+.overlay.overlay-center{align-items:center;padding:20px;}
 .modal{background:var(--card);border:1px solid var(--line);border-radius:16px 16px 0 0;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;padding:22px 20px 28px;}
 .modal-title{font-family:var(--font-display);font-size:26px;color:var(--ketchup);letter-spacing:.5px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
 .close-x{cursor:pointer;color:var(--cream-dim);font-size:20px;font-family:var(--font-body);}
@@ -172,6 +181,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--cream);font-family
   };
   const PRICE_TIERS = ["$","$$","$$$","$$$$"];
   const STORAGE_KEY = "food_reviews_v1";
+  const WELCOME_KEY = "biteclub_welcome_seen_v1";
   const LOGO_SVG = '<svg class="logo-mark" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
     '<defs><linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#F17B45"/><stop offset="100%" stop-color="#E88FA8"/></linearGradient></defs>' +
     '<circle cx="100" cy="100" r="94" fill="#F7EFE8"/>' +
@@ -203,6 +213,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--cream);font-family
   let editing = null; // review object being edited, or null
   let showForm = false;
   let viewing = null; // review object being viewed read-only, or null
+  let showWelcome = false;
 
   const wrap = document.getElementById("wrap");
 
@@ -255,6 +266,12 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--cream);font-family
     }catch(e){
       reviews = [];
     }
+    try{
+      const seen = localStorage.getItem(WELCOME_KEY);
+      showWelcome = seen !== "true";
+    }catch(e){
+      showWelcome = true;
+    }
     render();
   }
 
@@ -265,6 +282,16 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--cream);font-family
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     }catch(e){
       console.error("Save failed", e);
+    }
+  }
+
+  function dismissWelcome(){
+    showWelcome = false;
+    render();
+    try{
+      localStorage.setItem(WELCOME_KEY, "true");
+    }catch(e){
+      console.error("Failed to save welcome flag", e);
     }
   }
 
@@ -359,6 +386,13 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--cream);font-family
     } else {
       const existingView = document.getElementById("viewOverlay");
       if(existingView) existingView.remove();
+    }
+
+    if(showWelcome){
+      renderWelcomeModal();
+    } else {
+      const existingWelcome = document.getElementById("welcomeOverlay");
+      if(existingWelcome) existingWelcome.remove();
     }
   }
 
@@ -617,6 +651,28 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--cream);font-family
     return html;
   }
 
+  function renderWelcomeModal(){
+    let existing = document.getElementById("welcomeOverlay");
+    if(existing) existing.remove();
+    if(!showWelcome) return;
+
+    const overlay = document.createElement("div");
+    overlay.className = "overlay overlay-center";
+    overlay.id = "welcomeOverlay";
+
+    overlay.innerHTML =
+      '<div class="modal welcome-modal">' +
+      '  <div class="welcome-logo">' + LOGO_SVG + '</div>' +
+      '  <div class="welcome-title">Welcome to bite<span>club</span></div>' +
+      '  <div class="welcome-body">Taste it. Track it. Log every bite, rank your favorites, and find your next go-to.</div>' +
+      '  <div class="welcome-note">Heads up: your entries save right on this device. Avoid clearing your browser history or using private browsing, or you\u2019ll lose them.</div>' +
+      '  <button class="submit-btn" id="welcomeDismiss">Let\u2019s eat</button>' +
+      '</div>';
+
+    document.body.appendChild(overlay);
+    document.getElementById("welcomeDismiss").addEventListener("click", () => dismissWelcome());
+  }
+
   function renderViewModal(){
     let existing = document.getElementById("viewOverlay");
     if(existing) existing.remove();
@@ -634,7 +690,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--cream);font-family
     }
 
     const overlay = document.createElement("div");
-    overlay.className = "overlay";
+    overlay.className = "overlay overlay-center";
     overlay.id = "viewOverlay";
 
     overlay.innerHTML =
@@ -684,7 +740,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--cream);font-family
       return { show: true, label: prettyName + " Style", optionsHtml: optionsHtml };
     }
 
-    const initialCuisine = r ? r.cuisine : "Burger";
+    const initialCuisine = r ? r.cuisine : "";
     const initialStyleState = styleStateFor(initialCuisine, r ? r.style : null);
 
     const usedCuisines = Array.from(new Set(reviews.map(rv => rv.cuisine).filter(Boolean)));
@@ -714,12 +770,12 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--cream);font-family
       '  <div id="reviewForm">' +
       '    <div class="row2">' +
       '      <div class="field autocomplete-wrap"><label>Restaurant</label><input id="f_restaurant" value="' + esc(r ? r.restaurant : "") + '" placeholder="In-N-Out" autocomplete="off" /><div class="suggestion-list" id="restSuggestions" style="display:none;"></div></div>' +
-      '      <div class="field autocomplete-wrap"><label>City</label><input id="f_city" value="' + esc(r ? r.city : "") + '" placeholder="Los Angeles" autocomplete="off" /><div class="suggestion-list" id="citySuggestions" style="display:none;"></div></div>' +
+      '      <div class="field autocomplete-wrap"><label>Area</label><input id="f_city" value="' + esc(r ? r.city : "") + '" placeholder="Silver Lake" autocomplete="off" /><div class="suggestion-list" id="citySuggestions" style="display:none;"></div></div>' +
       '    </div>' +
       '    <div id="restaurantTypoWarning" class="typo-warning" style="display:none;"></div>' +
       '    <div class="field"><label>Dish</label><input id="f_dish" value="' + esc(r ? r.dish : "") + '" placeholder="Double-Double" /></div>' +
       '    <div class="row2">' +
-      '      <div class="field autocomplete-wrap"><label>Cuisine</label><input id="f_cuisine" value="' + esc(initialCuisine) + '" placeholder="Start typing..." autocomplete="off" /><div class="suggestion-list" id="cuisineSuggestions" style="display:none;"></div></div>' +
+      '      <div class="field autocomplete-wrap"><label>Cuisine</label><input id="f_cuisine" value="' + esc(initialCuisine) + '" placeholder="Burger" autocomplete="off" /><div class="suggestion-list" id="cuisineSuggestions" style="display:none;"></div></div>' +
       '      <div class="field"><label>Price</label><div class="price-toggle" id="f_priceToggle">' + priceBtns + '</div></div>' +
       '    </div>' +
       '    <div class="field" id="styleField" style="' + (initialStyleState.show ? '' : 'display:none;') + '"><label id="styleLabel">' + esc(initialStyleState.label) + '</label><select id="f_style">' + initialStyleState.optionsHtml + '</select></div>' +
@@ -731,7 +787,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--cream);font-family
       '      </div>' +
       '    </div>' +
       '    <div class="field"><label>Notes (optional)</label><textarea id="f_note" placeholder="Griddled bun, great char, a little dry...">' + esc(r ? r.note : "") + '</textarea></div>' +
-      '    <div id="formError" style="color:#B8564A;font-size:12px;margin-bottom:8px;display:none;">Restaurant, dish, and city are all required.</div>' +
+      '    <div id="formError" style="color:#B8564A;font-size:12px;margin-bottom:8px;display:none;">Restaurant, dish, and area are all required.</div>' +
       '    <button class="submit-btn" type="button" id="submitBtn">' + (r ? "Save changes" : "Add to board") + '</button>' +
       (r ? '<button type="button" class="delete-btn" id="deleteBtn">Delete entry</button>' : '') +
       '  </div>' +
