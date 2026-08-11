@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BiteClub</title>
+</head>
+<body>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
+
+:root{
+  --bg: #3F1F5C;
+  --field: #33184A;
+  --card: #4C2761;
+  --card-hi: #5A3170;
+  --line: #6B4C82;
+  --cream: #F7EFE8;
+  --cream-dim: #B49CC4;
+  --mustard: #E88FA8;
+  --ketchup: #F17B45;
+  --sage: #2FA0C4;
+  --poor: #8A7090;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'Work Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--cream);font-family:var(--font-body);}
+
+.wrap{max-width:720px;margin:0 auto;padding:28px 20px 100px;}
+
+.header{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+.logo-mark{width:52px;height:52px;flex-shrink:0;}
+.title{font-family:var(--font-display);font-size:44px;letter-spacing:1px;color:var(--ketchup);line-height:1;}
+.title span{color:var(--mustard);}
+.subtitle{font-size:13px;color:var(--cream-dim);margin-bottom:20px;letter-spacing:.3px;}
+
+.tabs{display:flex;gap:2px;background:var(--card);border-radius:10px;padding:4px;margin-bottom:20px;border:1px solid var(--line);}
+.tab{flex:1;text-align:center;padding:9px 6px;border-radius:7px;font-size:13px;font-weight:600;letter-spacing:.3px;cursor:pointer;color:var(--cream-dim);transition:all .15s ease;user-select:none;}
+.tab.active{background:var(--mustard);color:var(--bg);}
+.tab:not(.active):hover{color:var(--cream);}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+.chip{padding:6px 12px;border-radius:999px;border:1px solid var(--line);font-size:12px;color:var(--cream-dim);cursor:pointer;background:transparent;font-family:var(--font-body);letter-spacing:.2px;transition:all .15s;}
+.chip.active{background:var(--sage);border-color:var(--sage);color:var(--bg);font-weight:600;}
+.chip:hover:not(.active){border-color:var(--cream-dim);}
+
+.board{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card);}
+.entry{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .12s;}
+.entry:last-child{border-bottom:none;}
+.entry:hover{background:var(--card-hi);}
+.rank{font-family:var(--font-display);font-size:26px;color:#9B7BAE;width:34px;flex-shrink:0;text-align:right;}
+.rank.top1{color:var(--mustard);}
+.rank.top2{color:#C89BAE;}
+.rank.top3{color:var(--cream-dim);}
+.entry-main{flex:1;min-width:0;}
+.entry-dish{font-weight:700;font-size:15px;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.entry-dish .rest-inline{color:var(--cream-dim);font-weight:400;}
+.entry-meta{font-size:12px;color:var(--cream-dim);margin-top:2px;display:flex;gap:6px;align-items:center;}
+.tag{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-size:10.5px;letter-spacing:.3px;text-transform:uppercase;color:var(--ketchup);font-weight:600;}
+.score-badge{font-family:var(--font-mono);font-weight:700;font-size:16px;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.score-badge.tier-1{background:var(--mustard);color:var(--bg);box-shadow:0 0 0 3px rgba(232,143,168,0.25);}
+.score-badge.tier-2{background:var(--ketchup);color:var(--cream);box-shadow:0 0 0 3px rgba(241,123,69,0.2);}
+.score-badge.tier-3{background:var(--sage);color:var(--cream);box-shadow:0 0 0 3px rgba(47,160,196,0.22);}
+.score-badge.tier-4{background:var(--poor);color:var(--cream);box-shadow:0 0 0 3px rgba(138,112,144,0.22);}
+
+.empty{text-align:center;padding:60px 20px;color:var(--cream-dim);}
+.empty-title{font-family:var(--font-display);font-size:24px;color:var(--cream);margin-bottom:6px;letter-spacing:.5px;}
+
+.rest-group{margin-bottom:20px;}
+.letter-header{font-family:var(--font-display);font-size:17px;color:var(--sage);letter-spacing:1.5px;margin:18px 2px 8px;padding-bottom:4px;border-bottom:1px solid var(--line);}
+.letter-header:first-child{margin-top:0;}
+.az-index{position:fixed;right:6px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;z-index:40;}
+.az-btn{background:none;border:none;font-family:var(--font-mono);font-size:10px;font-weight:700;padding:3px 8px;line-height:1.2;color:var(--line);}
+.az-btn.active{color:var(--ketchup);cursor:pointer;}
+.az-btn.active:hover{color:var(--mustard);}
+.rest-name{font-family:var(--font-display);font-size:20px;color:var(--ketchup);letter-spacing:.5px;margin-bottom:8px;padding-left:2px;}
+.rest-area{font-size:11px;color:var(--cream-dim);font-weight:400;font-family:var(--font-body);margin-left:8px;text-transform:none;letter-spacing:0;}
+.city-sublabel{font-size:11px;color:var(--sage);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px 2px;font-weight:600;}
+.board{margin-bottom:4px;}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px;}
+.stat-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;}
+.stat-num{font-family:var(--font-display);font-size:34px;color:var(--ketchup);line-height:1;}
+.stat-label{font-size:11px;color:var(--cream-dim);text-transform:uppercase;letter-spacing:.5px;margin-top:4px;}
+.top-pick{background:linear-gradient(135deg, var(--card), var(--card-hi));border:1px solid var(--mustard);border-radius:12px;padding:18px;margin-bottom:16px;}
+.top-pick-label{font-size:11px;color:var(--mustard);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.top-pick-name{font-family:var(--font-display);font-size:24px;color:var(--cream);letter-spacing:.3px;}
+.top-pick-sub{font-size:13px;color:var(--cream-dim);margin-top:2px;}
+
+.dist-chart{display:flex;align-items:flex-end;gap:3px;height:110px;margin-bottom:22px;padding:0 2px;}
+.dist-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0;}
+.dist-count{font-family:var(--font-mono);font-size:9px;color:var(--cream-dim);margin-bottom:3px;height:11px;line-height:1;}
+.dist-bar{width:100%;border-radius:3px 3px 0 0;min-height:2px;}
+.dist-label{font-family:var(--font-mono);font-size:9px;color:var(--cream-dim);margin-top:5px;}
+
+.mini-pick{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--sage);border-radius:10px;padding:12px 14px;margin-bottom:10px;}
+.mini-pick-label{font-size:10px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;font-weight:700;}
+.mini-pick-name{font-weight:700;font-size:14px;color:var(--cream);}
+.mini-pick-sub{font-size:12px;color:var(--cream-dim);margin-top:1px;}
+
+.fab{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ketchup);color:var(--cream);border:none;border-radius:999px;padding:14px 26px;font-family:var(--font-body);font-weight:700;font-size:14px;letter-spacing:.3px;cursor:pointer;box-shadow:0 8px 24px rgba(241,123,69,0.35);transition:transform .15s;}
+.fab:hover{transform:translateX(-50%) scale(1.03);}
+
+.overlay{position:fixed;inset:0;background:rgba(18,8,26,0.7);display:flex;align-items:flex-end;justify-content:center;z-index:50;backdrop-filter:blur(2px);}
+.modal{background:var(--card);border:1px solid var(--line);border-radius:16px 16px 0 0;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;padding:22px 20px 28px;}
+.modal-title{font-family:var(--font-display);font-size:26px;color:var(--ketchup);letter-spacing:.5px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
+.close-x{cursor:pointer;color:var(--cream-dim);font-size:20px;font-family:var(--font-body);}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--cream-dim);margin-bottom:6px;}
+.field input, .field textarea, .field select{width:100%;background:var(--field);border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--cream);font-family:var(--font-body);font-size:16px;}
+.field input:focus, .field textarea:focus, .field select:focus{outline:none;border-color:var(--ketchup);}
+.field textarea{resize:vertical;min-height:60px;}
+.autocomplete-wrap{position:relative;}
+.suggestion-list{position:absolute;top:100%;left:0;right:0;background:var(--card-hi);border:1px solid var(--line);border-radius:8px;margin-top:4px;max-height:210px;overflow-y:auto;z-index:60;box-shadow:0 8px 20px rgba(0,0,0,0.4);}
+.suggestion-item{padding:9px 12px;font-size:13px;cursor:pointer;color:var(--cream);display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.suggestion-item:hover, .suggestion-item.hl{background:var(--field);}
+.suggestion-item .sugg-city{color:var(--cream-dim);font-size:11px;flex-shrink:0;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.score-input-wrap{display:flex;align-items:center;gap:12px;}
+.score-slider{flex:1;accent-color:var(--ketchup);}
+.score-display{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--ketchup);width:52px;text-align:center;}
+.price-toggle{display:flex;gap:6px;}
+.price-btn{flex:1;padding:9px;border-radius:8px;border:1px solid var(--line);background:var(--field);color:var(--cream-dim);cursor:pointer;font-family:var(--font-mono);font-weight:700;font-size:13px;text-align:center;}
+.price-btn.active{background:var(--sage);border-color:var(--sage);color:var(--bg);}
+.submit-btn{width:100%;background:var(--ketchup);color:var(--cream);border:none;border-radius:10px;padding:13px;font-weight:700;font-size:15px;letter-spacing:.3px;cursor:pointer;margin-top:6px;font-family:var(--font-body);}
+.submit-btn:hover{opacity:.92;}
+.delete-btn{width:100%;background:transparent;color:#D97A93;border:1px solid #5B3550;border-radius:10px;padding:10px;font-size:13px;cursor:pointer;margin-top:8px;font-family:var(--font-body);}
+
+.loading{text-align:center;padding:80px 20px;color:var(--cream-dim);font-family:var(--font-mono);font-size:13px;}
+</style>
+
+
+<div class="wrap" id="wrap">
+  <div class="loading">loading your log...</div>
+</div>
+
+<script>
+(function(){
+  const CUISINES = ["Burger","Afghan","Albanian","Algerian","American","Argentine","Armenian","Australian","Austrian","Azerbaijani","Bangladeshi","BBQ","Belgian","Bhutanese","Bolivian","Bosnian","Brazilian","British","Bulgarian","Burmese","Cajun","Cambodian","Cameroonian","Canadian","Caribbean","Chicken","Chilean","Chinese","Colombian","Congolese","Creole","Croatian","Cuban","Czech","Danish","Dessert","Dominican","Dutch","Ecuadorian","Egyptian","Emirati","Eritrean","Estonian","Ethiopian","Fast Food","Fijian","Filipino","Finnish","French","Fries","Fusion","Georgian","German","Ghanaian","Greek","Haitian","Hawaiian","Hungarian","Icelandic","Indian","Indonesian","Iraqi","Irish","Israeli","Italian","Ivorian","Jamaican","Japanese","Jordanian","Kazakh","Kenyan","Korean","Laotian","Latin American","Latvian","Lebanese","Lithuanian","Malaysian","Malian","Māori","Mediterranean","Melanesian","Mexican","Middle Eastern","Mongolian","Moroccan","Nepalese","New Zealand","Nigerian","Norwegian","Omani","Pakistani","Palestinian","Paraguayan","Persian","Peruvian","Pizza","Polish","Polynesian","Portuguese","Puerto Rican","Romanian","Russian","Samoan","Sandwich","Saudi Arabian","Scottish","Seafood","Senegalese","Serbian","Sides","Singaporean","Slovak","Slovenian","Somali","South African","Spanish","Sri Lankan","Steakhouse","Sudanese","Swedish","Swiss","Syrian","Taiwanese","Tajik","Tanzanian","Tex-Mex","Thai","Tibetan","Tongan","Trinidadian","Tunisian","Turkish","Ugandan","Ukrainian","Uruguayan","Uzbek","Vegan","Vegetarian","Venezuelan","Vietnamese","Yemeni","Other"];
+  const STYLE_OPTIONS = {
+    "burger": ["Smash","Diner","Gourmet","Fast Food","Other"],
+    "pizza": ["Neapolitan","New York","Detroit","Chicago Deep Dish","Sicilian","Wood-fired/Artisan","Fast Food/Chain","Other"],
+    "bbq": ["Texas","Carolina","Kansas City","Memphis","Other"],
+    "fries": ["Crinkle-Cut","Waffle","Shoestring","Steak Fries","Sweet Potato","Curly","Tater Tots","Other"],
+    "chicken": ["Fried","Rotisserie","Grilled","Wings","Nashville Hot","Korean Fried","Other"]
+  };
+  const PRICE_TIERS = ["$","$$","$$$","$$$$"];
+  const STORAGE_KEY = "food_reviews_v1";
+  const LOGO_SVG = '<svg class="logo-mark" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+    '<defs><linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#F17B45"/><stop offset="100%" stop-color="#E88FA8"/></linearGradient></defs>' +
+    '<circle cx="100" cy="100" r="94" fill="#F7EFE8"/>' +
+    '<circle cx="100" cy="100" r="86" fill="#3F1F5C" stroke="#2FA0C4" stroke-width="2"/>' +
+    '<circle cx="100" cy="100" r="54" fill="url(#logoGrad)"/>' +
+    '<circle cx="142" cy="65" r="19" fill="#3F1F5C"/>' +
+    '<circle cx="154" cy="80" r="11" fill="#3F1F5C"/>' +
+    '<circle cx="129" cy="51" r="9" fill="#3F1F5C"/>' +
+    '<circle cx="159" cy="55" r="8" fill="#3F1F5C"/>' +
+    '<circle cx="151" cy="118" r="14" fill="#3F1F5C"/>' +
+    '<circle cx="161" cy="108" r="8" fill="#3F1F5C"/>' +
+    '<circle cx="160" cy="128" r="7" fill="#3F1F5C"/>' +
+    '<circle cx="47" cy="109" r="11" fill="#3F1F5C"/>' +
+    '<circle cx="37" cy="98" r="7" fill="#3F1F5C"/>' +
+    '<circle cx="38" cy="119" r="6" fill="#3F1F5C"/>' +
+    '<circle cx="163" cy="44" r="4" fill="#F17B45"/>' +
+    '<circle cx="170" cy="69" r="3" fill="#F17B45"/>' +
+    '<circle cx="168" cy="134" r="3.5" fill="#E88FA8"/>' +
+    '<circle cx="143" cy="136" r="2" fill="#E88FA8"/>' +
+    '<circle cx="27" cy="117" r="3" fill="#2FA0C4"/>' +
+    '<circle cx="33" cy="132" r="2" fill="#2FA0C4"/>' +
+    '</svg>';
+
+  let reviews = null;
+  let tab = "rankings";
+  let catFilter = "All";
+  let editing = null; // review object being edited, or null
+  let showForm = false;
+
+  const wrap = document.getElementById("wrap");
+
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function scoreTierClass(score){
+    if(score >= 8) return "tier-1";
+    if(score >= 5.5) return "tier-2";
+    if(score >= 3) return "tier-3";
+    return "tier-4";
+  }
+  function esc(s){
+    const d = document.createElement("div");
+    d.textContent = s == null ? "" : String(s);
+    return d.innerHTML;
+  }
+
+  function migrateReview(r){
+    if(r.cuisine) return r;
+    const oldCat = r.category || "Other";
+    let cuisine = "Other", style = "";
+    if(/burger/i.test(oldCat)){
+      cuisine = "Burger";
+      style = oldCat.replace(/burger/i,"").trim() || "Other";
+      if(!STYLE_OPTIONS.burger.includes(style)) style = "Other";
+    } else if(CUISINES.includes(oldCat)){
+      cuisine = oldCat;
+    }
+    return Object.assign({}, r, { cuisine: cuisine, style: style, city: r.city || r.area || "" });
+  }
+
+  function load(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      reviews = raw ? JSON.parse(raw) : [];
+      reviews = reviews.map(migrateReview);
+    }catch(e){
+      reviews = [];
+    }
+    render();
+  }
+
+  function saveAll(next){
+    reviews = next;
+    render();
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    }catch(e){
+      console.error("Save failed", e);
+    }
+  }
+
+  function upsertReview(review){
+    let next;
+    if(editing){
+      next = reviews.map(r => r.id === review.id ? review : r);
+    } else {
+      next = reviews.concat([review]);
+    }
+    showForm = false;
+    editing = null;
+    saveAll(next);
+  }
+
+  function deleteReview(id){
+    const next = reviews.filter(r => r.id !== id);
+    showForm = false;
+    editing = null;
+    saveAll(next);
+  }
+
+  function render(){
+    if(reviews === null){
+      wrap.innerHTML = '<div class="loading">loading your log...</div>';
+      return;
+    }
+
+    let html = '';
+    html += '<div class="header">' + LOGO_SVG + '<div class="title">bite<span>club</span></div></div>';
+    html += '<div class="subtitle">Taste it, Track it</div>';
+
+    html += '<div class="tabs">';
+    html += tabHtml("rankings", "Rankings");
+    html += tabHtml("restaurants", "By Spot");
+    html += tabHtml("stats", "Stats");
+    html += '</div>';
+
+    if(tab === "rankings") html += renderRankings();
+    else if(tab === "restaurants"){
+      html += renderRestaurants();
+      if(reviews.length > 0) html += renderAzIndex();
+    }
+    else if(tab === "stats") html += renderStats();
+
+    html += '<button class="fab" id="fabBtn">+ Log a bite</button>';
+
+    wrap.innerHTML = html;
+
+    // wire up tab clicks
+    wrap.querySelectorAll("[data-tab]").forEach(el => {
+      el.addEventListener("click", () => { tab = el.getAttribute("data-tab"); render(); });
+    });
+    // wire up filter chips
+    wrap.querySelectorAll("[data-cat]").forEach(el => {
+      el.addEventListener("click", () => { catFilter = el.getAttribute("data-cat"); render(); });
+    });
+    // wire up entry clicks (edit)
+    wrap.querySelectorAll("[data-edit-id]").forEach(el => {
+      el.addEventListener("click", () => {
+        const id = el.getAttribute("data-edit-id");
+        editing = reviews.find(r => r.id === id) || null;
+        showForm = true;
+        renderModal();
+      });
+    });
+    // wire up A-Z index jump buttons
+    wrap.querySelectorAll(".az-btn.active").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const target = document.getElementById("letter-" + btn.getAttribute("data-letter"));
+        if(target) target.scrollIntoView({behavior:"smooth", block:"start"});
+      });
+    });
+    // FAB
+    const fab = document.getElementById("fabBtn");
+    if(fab) fab.addEventListener("click", () => { editing = null; showForm = true; renderModal(); });
+
+    if(showForm){
+      renderModal();
+    } else {
+      const existing = document.getElementById("modalOverlay");
+      if(existing) existing.remove();
+    }
+  }
+
+  function tabHtml(key, label){
+    return '<div class="tab ' + (tab===key ? "active" : "") + '" data-tab="' + key + '">' + label + '</div>';
+  }
+
+  function renderRankings(){
+    const usedCuisines = Array.from(new Set(reviews.map(r => r.cuisine).filter(Boolean)));
+    usedCuisines.sort((a,b) => {
+      if(a === "Burger") return -1;
+      if(b === "Burger") return 1;
+      return a.localeCompare(b);
+    });
+    const categories = ["All"].concat(usedCuisines);
+    const filtered = catFilter === "All" ? reviews : reviews.filter(r => r.cuisine === catFilter);
+    const sorted = filtered.slice().sort((a,b) => b.score - a.score);
+
+    if(reviews.length === 0){
+      return '<div class="empty"><div class="empty-title">The board is empty</div><div>Log your first bite to start the ranking.</div></div>';
+    }
+
+    let html = '<div class="filters">';
+    categories.forEach(c => {
+      html += '<div class="chip ' + (catFilter===c ? "active" : "") + '" data-cat="' + esc(c) + '">' + esc(c) + '</div>';
+    });
+    html += '</div>';
+
+    if(sorted.length === 0){
+      html += '<div class="empty"><div class="empty-title">Nothing here yet</div><div>Try a different filter.</div></div>';
+      return html;
+    }
+
+    html += '<div class="board">';
+    sorted.forEach((r, i) => {
+      const rankClass = i===0 ? "top1" : i===1 ? "top2" : i===2 ? "top3" : "";
+      const scoreClass = scoreTierClass(r.score);
+      const catLabel = r.style ? (r.cuisine + " · " + r.style) : r.cuisine;
+      html += '<div class="entry" data-edit-id="' + esc(r.id) + '">';
+      html += '  <div class="rank ' + rankClass + '">' + (i+1) + '</div>';
+      html += '  <div class="entry-main">';
+      html += '    <div class="entry-dish">' + esc(r.dish) + ' <span class="rest-inline">— ' + esc(r.restaurant) + '</span></div>';
+      html += '    <div class="entry-meta"><span class="tag">' + esc(catLabel) + '</span><span>' + esc(r.priceTier) + '</span>' + (r.city ? '<span>· ' + esc(r.city) + '</span>' : '') + '</div>';
+      html += '  </div>';
+      html += '  <div class="score-badge ' + scoreClass + '">' + Number(r.score).toFixed(1) + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  function sortKeyFor(name){
+    let n = (name || "").trim();
+    n = n.replace(/^(the|a|an)\s+/i, "");
+    return n.toUpperCase();
+  }
+
+  function letterFor(name){
+    const first = sortKeyFor(name).charAt(0);
+    return /[A-Z]/.test(first) ? first : "#";
+  }
+
+  function renderRestaurants(){
+    if(reviews.length === 0){
+      return '<div class="empty"><div class="empty-title">No spots logged yet</div><div>Add your first review to get started.</div></div>';
+    }
+    const groups = {};
+    reviews.forEach(r => {
+      if(!groups[r.restaurant]) groups[r.restaurant] = { cityMap: {}, allItems: [] };
+      const cityKey = (r.city || "").trim() || "Unknown location";
+      if(!groups[r.restaurant].cityMap[cityKey]) groups[r.restaurant].cityMap[cityKey] = [];
+      groups[r.restaurant].cityMap[cityKey].push(r);
+      groups[r.restaurant].allItems.push(r);
+    });
+    const avgOf = arr => arr.reduce((s,r)=>s+r.score,0) / arr.length;
+    const names = Object.keys(groups).sort((a,b) => sortKeyFor(a).localeCompare(sortKeyFor(b)));
+
+    let html = '';
+    let currentLetter = null;
+    names.forEach(name => {
+      const letter = letterFor(name);
+      if(letter !== currentLetter){
+        currentLetter = letter;
+        html += '<div class="letter-header" id="letter-' + letter + '">' + letter + '</div>';
+      }
+
+      const g = groups[name];
+      const cityKeys = Object.keys(g.cityMap);
+      const multiCity = cityKeys.length > 1;
+      const sortedCityKeys = cityKeys.slice().sort((a,b) => avgOf(g.cityMap[b]) - avgOf(g.cityMap[a]));
+
+      html += '<div class="rest-group">';
+      html += '<div class="rest-name">' + esc(name) +
+        (multiCity ? ' <span class="rest-area">' + cityKeys.length + ' locations</span>'
+          : (cityKeys[0] && cityKeys[0] !== "Unknown location" ? ' <span class="rest-area">' + esc(cityKeys[0]) + '</span>' : '')) +
+        '</div>';
+
+      sortedCityKeys.forEach(cityKey => {
+        if(multiCity){
+          html += '<div class="city-sublabel">' + esc(cityKey) + '</div>';
+        }
+        html += '<div class="board">';
+        g.cityMap[cityKey].slice().sort((a,b)=>b.score-a.score).forEach(r => {
+          const scoreClass = scoreTierClass(r.score);
+          const catLabel = r.style ? (r.cuisine + " · " + r.style) : r.cuisine;
+          html += '<div class="entry" data-edit-id="' + esc(r.id) + '">';
+          html += '  <div class="entry-main">';
+          html += '    <div class="entry-dish">' + esc(r.dish) + '</div>';
+          html += '    <div class="entry-meta"><span class="tag">' + esc(catLabel) + '</span><span>' + esc(r.priceTier) + '</span></div>';
+          html += '  </div>';
+          html += '  <div class="score-badge ' + scoreClass + '">' + Number(r.score).toFixed(1) + '</div>';
+          html += '</div>';
+        });
+        html += '</div>';
+      });
+
+      html += '</div>';
+    });
+    return html;
+  }
+
+  function renderAzIndex(){
+    const present = new Set();
+    reviews.forEach(r => present.add(letterFor(r.restaurant)));
+    const ALPHA = ['#','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+    let html = '<div class="az-index">';
+    ALPHA.forEach(L => {
+      const active = present.has(L);
+      html += '<button class="az-btn' + (active ? ' active' : '') + '" data-letter="' + L + '"' + (active ? '' : ' disabled') + '>' + L + '</button>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  function renderStats(){
+    if(reviews.length === 0){
+      return '<div class="empty"><div class="empty-title">No stats yet</div><div>Log a few bites and check back.</div></div>';
+    }
+    const avg = reviews.reduce((s,r)=>s+r.score,0) / reviews.length;
+    const restaurantCount = new Set(reviews.map(r=>r.restaurant)).size;
+    const top = reviews.slice().sort((a,b)=>b.score-a.score)[0];
+    const burgerReviews = reviews.filter(r => r.cuisine === "Burger");
+    const topBurger = burgerReviews.length ? burgerReviews.slice().sort((a,b)=>b.score-a.score)[0] : null;
+
+    const restCounts = {};
+    reviews.forEach(r => { restCounts[r.restaurant] = (restCounts[r.restaurant] || 0) + 1; });
+    let mostVisited = null, mostVisitedCount = 0;
+    Object.keys(restCounts).forEach(name => {
+      if(restCounts[name] > mostVisitedCount){ mostVisitedCount = restCounts[name]; mostVisited = name; }
+    });
+
+    const valueReviews = reviews.filter(r => r.priceTier === "$" || r.priceTier === "$$");
+    const bestValue = valueReviews.length ? valueReviews.slice().sort((a,b)=>b.score-a.score)[0] : null;
+
+    const cuisineGroups = {};
+    reviews.forEach(r => { if(!cuisineGroups[r.cuisine]) cuisineGroups[r.cuisine] = []; cuisineGroups[r.cuisine].push(r.score); });
+    let topCuisine = null, topCuisineAvg = -1, topCuisineCount = 0;
+    Object.keys(cuisineGroups).forEach(c => {
+      const arr = cuisineGroups[c];
+      const a = arr.reduce((s,x)=>s+x,0) / arr.length;
+      if(a > topCuisineAvg){ topCuisineAvg = a; topCuisine = c; topCuisineCount = arr.length; }
+    });
+
+    const buckets = new Array(11).fill(0);
+    reviews.forEach(r => {
+      let b = Math.round(r.score);
+      if(b < 0) b = 0;
+      if(b > 10) b = 10;
+      buckets[b]++;
+    });
+    const maxBucket = Math.max.apply(null, buckets.concat([1]));
+
+    let html = '';
+    html += '<div class="top-pick">';
+    html += '<div class="top-pick-label">★ Highest rated overall</div>';
+    html += '<div class="top-pick-name">' + esc(top.dish) + '</div>';
+    html += '<div class="top-pick-sub">' + esc(top.restaurant) + ' · ' + Number(top.score).toFixed(1) + '/10</div>';
+    html += '</div>';
+
+    if(topBurger){
+      html += '<div class="top-pick" style="border-color:var(--ketchup)">';
+      html += '<div class="top-pick-label" style="color:var(--ketchup)">🍔 Best burger so far</div>';
+      html += '<div class="top-pick-name">' + esc(topBurger.dish) + '</div>';
+      html += '<div class="top-pick-sub">' + esc(topBurger.restaurant) + ' · ' + Number(topBurger.score).toFixed(1) + '/10</div>';
+      html += '</div>';
+    }
+
+    html += '<div class="stat-grid">';
+    html += '<div class="stat-card"><div class="stat-num">' + reviews.length + '</div><div class="stat-label">Bites logged</div></div>';
+    html += '<div class="stat-card"><div class="stat-num">' + restaurantCount + '</div><div class="stat-label">Spots visited</div></div>';
+    html += '<div class="stat-card"><div class="stat-num">' + avg.toFixed(1) + '</div><div class="stat-label">Average score</div></div>';
+    html += '<div class="stat-card"><div class="stat-num">' + burgerReviews.length + '</div><div class="stat-label">Burgers ranked</div></div>';
+    html += '</div>';
+
+    html += '<div class="stat-label" style="margin-bottom:8px;">Score distribution</div>';
+    html += '<div class="dist-chart">';
+    for(let b = 0; b <= 10; b++){
+      const count = buckets[b];
+      const heightPx = count > 0 ? Math.max(4, Math.round((count / maxBucket) * 74)) : 2;
+      const tierClass = scoreTierClass(b);
+      const barColor = tierClass === "tier-1" ? "var(--mustard)" : tierClass === "tier-2" ? "var(--ketchup)" : tierClass === "tier-3" ? "var(--sage)" : "var(--poor)";
+      html += '<div class="dist-col">';
+      html += '<div class="dist-count">' + (count > 0 ? count : "") + '</div>';
+      html += '<div class="dist-bar" style="height:' + heightPx + 'px;background:' + (count > 0 ? barColor : "var(--line)") + ';"></div>';
+      html += '<div class="dist-label">' + b + '</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+
+    if(mostVisited){
+      html += '<div class="mini-pick" style="border-left-color:var(--sage);">';
+      html += '<div class="mini-pick-label" style="color:var(--sage);">Most visited</div>';
+      html += '<div class="mini-pick-name">' + esc(mostVisited) + '</div>';
+      html += '<div class="mini-pick-sub">' + mostVisitedCount + ' bite' + (mostVisitedCount === 1 ? '' : 's') + ' logged</div>';
+      html += '</div>';
+    }
+    if(bestValue){
+      html += '<div class="mini-pick" style="border-left-color:var(--ketchup);">';
+      html += '<div class="mini-pick-label" style="color:var(--ketchup);">Best value</div>';
+      html += '<div class="mini-pick-name">' + esc(bestValue.dish) + '</div>';
+      html += '<div class="mini-pick-sub">' + esc(bestValue.restaurant) + ' · ' + esc(bestValue.priceTier) + ' · ' + Number(bestValue.score).toFixed(1) + '/10</div>';
+      html += '</div>';
+    }
+    if(topCuisine){
+      html += '<div class="mini-pick" style="border-left-color:var(--mustard);">';
+      html += '<div class="mini-pick-label" style="color:var(--mustard);">Highest-rated cuisine</div>';
+      html += '<div class="mini-pick-name">' + esc(topCuisine) + '</div>';
+      html += '<div class="mini-pick-sub">avg ' + topCuisineAvg.toFixed(1) + ' across ' + topCuisineCount + ' ' + (topCuisineCount === 1 ? 'entry' : 'entries') + '</div>';
+      html += '</div>';
+    }
+
+    return html;
+  }
+
+  function renderModal(){
+    let existing = document.getElementById("modalOverlay");
+    if(existing) existing.remove();
+    if(!showForm) return;
+
+    const r = editing;
+    const overlay = document.createElement("div");
+    overlay.className = "overlay";
+    overlay.id = "modalOverlay";
+
+    function styleStateFor(cuisineValue, selectedStyle){
+      const key = (cuisineValue || "").trim().toLowerCase();
+      const opts = STYLE_OPTIONS[key];
+      if(!opts) return { show: false, label: "", optionsHtml: "" };
+      const optionsHtml = opts.map(s =>
+        '<option value="' + esc(s) + '"' + (s === selectedStyle ? " selected" : (!selectedStyle && s === opts[0] ? " selected" : "")) + '>' + esc(s) + '</option>'
+      ).join('');
+      const prettyName = cuisineValue.trim().replace(/^./, c => c.toUpperCase());
+      return { show: true, label: prettyName + " Style", optionsHtml: optionsHtml };
+    }
+
+    const initialCuisine = r ? r.cuisine : "Burger";
+    const initialStyleState = styleStateFor(initialCuisine, r ? r.style : null);
+
+    const usedCuisines = Array.from(new Set(reviews.map(rv => rv.cuisine).filter(Boolean)));
+    const cuisineDirectory = Array.from(new Set(CUISINES.concat(usedCuisines))).map(c => ({ name: c }));
+
+    const restaurantMap = {};
+    reviews.forEach(rv => {
+      const name = (rv.restaurant || "").trim();
+      if(!name) return;
+      const key = name.toLowerCase() + "||" + (rv.city || "").trim().toLowerCase();
+      if(!restaurantMap[key]) restaurantMap[key] = { name: rv.restaurant, city: rv.city || "" };
+    });
+    const restaurantList = Object.values(restaurantMap);
+    const cityNames = Array.from(new Set(reviews.map(rv => rv.city).filter(Boolean)));
+
+    const initialScore = r ? Number(r.score) : 7.5;
+    const initialPrice = r ? r.priceTier : "$$";
+
+    let priceBtns = '';
+    PRICE_TIERS.forEach(p => {
+      priceBtns += '<div class="price-btn ' + (p===initialPrice ? "active" : "") + '" data-price="' + p + '">' + p + '</div>';
+    });
+
+    overlay.innerHTML =
+      '<div class="modal">' +
+      '  <div class="modal-title">' + (r ? "Edit entry" : "Log a bite") + '<span class="close-x" id="closeModal">✕</span></div>' +
+      '  <div id="reviewForm">' +
+      '    <div class="row2">' +
+      '      <div class="field autocomplete-wrap"><label>Restaurant</label><input id="f_restaurant" value="' + esc(r ? r.restaurant : "") + '" placeholder="In-N-Out" autocomplete="off" /><div class="suggestion-list" id="restSuggestions" style="display:none;"></div></div>' +
+      '      <div class="field autocomplete-wrap"><label>City</label><input id="f_city" value="' + esc(r ? r.city : "") + '" placeholder="Los Angeles" autocomplete="off" /><div class="suggestion-list" id="citySuggestions" style="display:none;"></div></div>' +
+      '    </div>' +
+      '    <div class="field"><label>Dish</label><input id="f_dish" value="' + esc(r ? r.dish : "") + '" placeholder="Double-Double" /></div>' +
+      '    <div class="row2">' +
+      '      <div class="field autocomplete-wrap"><label>Cuisine</label><input id="f_cuisine" value="' + esc(initialCuisine) + '" placeholder="Start typing..." autocomplete="off" /><div class="suggestion-list" id="cuisineSuggestions" style="display:none;"></div></div>' +
+      '      <div class="field"><label>Price</label><div class="price-toggle" id="f_priceToggle">' + priceBtns + '</div></div>' +
+      '    </div>' +
+      '    <div class="field" id="styleField" style="' + (initialStyleState.show ? '' : 'display:none;') + '"><label id="styleLabel">' + esc(initialStyleState.label) + '</label><select id="f_style">' + initialStyleState.optionsHtml + '</select></div>' +
+      '    <div class="field">' +
+      '      <label>Score: <span id="scoreLabel">' + initialScore.toFixed(1) + '</span> / 10</label>' +
+      '      <div class="score-input-wrap">' +
+      '        <input type="range" class="score-slider" id="f_score" min="0" max="10" step="0.5" value="' + initialScore + '" />' +
+      '        <div class="score-display" id="scoreDisplay">' + initialScore.toFixed(1) + '</div>' +
+      '      </div>' +
+      '    </div>' +
+      '    <div class="field"><label>Notes (optional)</label><textarea id="f_note" placeholder="Griddled bun, great char, a little dry...">' + esc(r ? r.note : "") + '</textarea></div>' +
+      '    <div id="formError" style="color:#B8564A;font-size:12px;margin-bottom:8px;display:none;">Restaurant, dish, and city are all required.</div>' +
+      '    <button class="submit-btn" type="button" id="submitBtn">' + (r ? "Save changes" : "Add to board") + '</button>' +
+      (r ? '<button type="button" class="delete-btn" id="deleteBtn">Delete entry</button>' : '') +
+      '  </div>' +
+      '</div>';
+
+    document.body.appendChild(overlay);
+
+    let selectedPrice = initialPrice;
+
+    overlay.addEventListener("click", (e) => { if(e.target === overlay){ showForm = false; editing = null; renderModal(); } });
+    document.getElementById("closeModal").addEventListener("click", () => { showForm = false; editing = null; renderModal(); });
+
+    const scoreSlider = document.getElementById("f_score");
+    scoreSlider.addEventListener("input", () => {
+      const v = parseFloat(scoreSlider.value).toFixed(1);
+      document.getElementById("scoreLabel").textContent = v;
+      document.getElementById("scoreDisplay").textContent = v;
+    });
+
+    document.getElementById("f_priceToggle").querySelectorAll(".price-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        selectedPrice = btn.getAttribute("data-price");
+        document.getElementById("f_priceToggle").querySelectorAll(".price-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+      });
+    });
+
+    const cuisineInput = document.getElementById("f_cuisine");
+    function refreshStyleField(){
+      const state = styleStateFor(cuisineInput.value, null);
+      const fieldEl = document.getElementById("styleField");
+      const labelEl = document.getElementById("styleLabel");
+      const selectEl = document.getElementById("f_style");
+      if(state.show){
+        fieldEl.style.display = "";
+        labelEl.textContent = state.label;
+        selectEl.innerHTML = state.optionsHtml;
+      } else {
+        fieldEl.style.display = "none";
+        labelEl.textContent = "";
+        selectEl.innerHTML = "";
+      }
+    }
+    cuisineInput.addEventListener("input", refreshStyleField);
+
+    function rankMatches(items, getLabel, query){
+      const q = query.trim().toLowerCase();
+      if(!q) return [];
+      return items
+        .filter(it => getLabel(it).toLowerCase().includes(q))
+        .sort((a,b) => {
+          const aStarts = getLabel(a).toLowerCase().startsWith(q) ? 0 : 1;
+          const bStarts = getLabel(b).toLowerCase().startsWith(q) ? 0 : 1;
+          if(aStarts !== bStarts) return aStarts - bStarts;
+          return getLabel(a).length - getLabel(b).length;
+        })
+        .slice(0, 6);
+    }
+
+    function wireTypeahead(inputEl, listEl, items, getLabel, onPick){
+      function close(){ listEl.style.display = "none"; listEl.innerHTML = ""; }
+      inputEl.addEventListener("input", () => {
+        const matches = rankMatches(items, getLabel, inputEl.value);
+        if(matches.length === 0){ close(); return; }
+        listEl.innerHTML = matches.map((m, idx) => {
+          const label = getLabel(m);
+          const city = m.city ? '<span class="sugg-city">' + esc(m.city) + '</span>' : '';
+          return '<div class="suggestion-item" data-idx="' + idx + '">' + esc(label) + city + '</div>';
+        }).join('');
+        listEl.style.display = "block";
+        listEl.querySelectorAll(".suggestion-item").forEach(el => {
+          el.addEventListener("click", () => {
+            const idx = parseInt(el.getAttribute("data-idx"), 10);
+            onPick(matches[idx]);
+            close();
+          });
+        });
+      });
+      inputEl.addEventListener("focus", () => {
+        if(inputEl.value.trim()) inputEl.dispatchEvent(new Event("input"));
+      });
+      document.addEventListener("click", (e) => {
+        if(!inputEl.contains(e.target) && !listEl.contains(e.target)) close();
+      });
+    }
+
+    const restaurantInput = document.getElementById("f_restaurant");
+    const cityInput = document.getElementById("f_city");
+
+    wireTypeahead(
+      restaurantInput,
+      document.getElementById("restSuggestions"),
+      restaurantList,
+      (item) => item.name,
+      (item) => {
+        restaurantInput.value = item.name;
+        if(item.city) cityInput.value = item.city;
+      }
+    );
+
+    wireTypeahead(
+      cityInput,
+      document.getElementById("citySuggestions"),
+      cityNames.map(c => ({ name: c, city: "" })),
+      (item) => item.name,
+      (item) => { cityInput.value = item.name; }
+    );
+
+    wireTypeahead(
+      cuisineInput,
+      document.getElementById("cuisineSuggestions"),
+      cuisineDirectory,
+      (item) => item.name,
+      (item) => { cuisineInput.value = item.name; refreshStyleField(); }
+    );
+
+    if(r && document.getElementById("deleteBtn")){
+      document.getElementById("deleteBtn").addEventListener("click", () => deleteReview(r.id));
+    }
+
+    document.getElementById("submitBtn").addEventListener("click", () => {
+      const restaurant = document.getElementById("f_restaurant").value.trim();
+      const dish = document.getElementById("f_dish").value.trim();
+      const city = document.getElementById("f_city").value.trim();
+      if(!restaurant || !dish || !city){
+        document.getElementById("formError").style.display = "block";
+        return;
+      }
+      const cuisine = document.getElementById("f_cuisine").value.trim() || "Other";
+      const hasStyle = !!STYLE_OPTIONS[cuisine.toLowerCase()];
+      const review = {
+        id: r ? r.id : uid(),
+        restaurant: restaurant,
+        city: city,
+        dish: dish,
+        cuisine: cuisine,
+        style: hasStyle ? document.getElementById("f_style").value : "",
+        score: parseFloat(document.getElementById("f_score").value),
+        priceTier: selectedPrice,
+        note: document.getElementById("f_note").value.trim(),
+        date: r ? r.date : new Date().toISOString(),
+      };
+      upsertReview(review);
+    });
+  }
+
+  load();
+})();
+</script>
+
+</body>
+</html>
